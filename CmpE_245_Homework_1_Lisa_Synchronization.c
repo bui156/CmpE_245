@@ -35,7 +35,9 @@ int main(void) {
 	printf("Hello World!\n");
 	char *sync_buffer;
 
-	char sync_field_1[] =	"01010000" //0x50
+	char sync_field_1[] =	"00000000" //FAKE
+							"00010001" //FAKE
+							"01010000" //0x50
 							"01010001" //0x51
 							"01010010" //0x52
 							"01010011" //0x53
@@ -167,7 +169,7 @@ int main(void) {
 	}
 
 	//sync_field_iterator = sync_field_iterator_find;
-
+	sync_field_iterator_1 = sync_field_iterator;
 	for (sync_field_iterator = sync_field_iterator_1; sync_field_iterator < sizeof(sync_field_1); sync_field_iterator++) {
 		//Confidence Level 0
 		if (confidence_level_count < confidence_level && sync_field_iterator == sync_field_iterator_1) {
@@ -944,6 +946,10 @@ int main(void) {
 			}
 		}
 	}
+
+	//Print the payload
+	for (int i = payload_start; i < (sizeof(sync_field_1)); i++)
+		printf("This is the payload: %c\n", sync_field_1[i]);
 	
 	
 
