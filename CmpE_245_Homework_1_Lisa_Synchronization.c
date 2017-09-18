@@ -30,6 +30,7 @@ const char sync_kernel[] = "01010000"; //0x50
 
 void write_to_text_file();
 char *copy_text_file();
+int corrupt(char sync_field_1 []);
 
 int main(void) {
 	printf("Hello World!\n");
@@ -118,6 +119,8 @@ int main(void) {
 	for (int i = 0; i < 1024; i++)
 		sync_buffer[i] = sync_buffer_input[i];
 
+	corrupt(sync_field_1);
+
 	/*
 	printf("Size of sync_field: %d\n", sizeof(sync_field));
 	printf("Size of hello_world: %d\n", sizeof(hello_world));
@@ -144,7 +147,7 @@ int main(void) {
 	int sync_field_iterator_find = 0;
 	int stop = 0;
 
-	/*
+	
 	//Find start of sync field
 	//Save payload start position
 	for (sync_field_iterator_find = 0; sync_field_iterator_find < sizeof(sync_field_1); sync_field_iterator_find++) {
@@ -955,7 +958,8 @@ int main(void) {
 			}
 		}
 	}
-	*/
+	
+	/*
 	printf("asdfsadfasfd %c\n", sync_buffer[1]);
 	//Find start of sync field
 	//Save payload start position
@@ -1767,10 +1771,13 @@ int main(void) {
 			}
 		}
 	}
+	*/
 
 	//Print the payload
-	for (int i = payload_start; i < (sizeof(sync_field_1)); i++)
-		printf("This is the payload: %c\n", sync_field_1[i]);
+	if (confidence_level_count == confidence_level) {
+		for (int i = payload_start; i < (sizeof(sync_field_1)); i++)
+			printf("This is the payload: %c\n", sync_field_1[i]);
+	}
 	
 	
 
@@ -1855,4 +1862,39 @@ char *copy_text_file() {
 			printf("The file 'test.txt' was not closed. \n");
 	}
 	return buff;
+}
+
+/*takes input from user, percentage of corruption, */
+int corrupt(char sync_field_1[])
+{
+	int corrupt_no, c;
+	int a, position;
+	int b[256] = { 0 };
+	int len;
+	printf("Enter the percentage of corrupted bits\n");
+	scanf_s("%d", &corrupt_no, 1);
+	a = (corrupt_no * 256) / 100;
+	if (a % 2 != 0)
+		a += 1;
+
+	for (int i = 0; i <= a; i++)
+	{
+		position = (rand() % 256) + 8;
+		b[i] = position;
+
+		if (sync_field_1[position] == '0')
+			sync_field_1[position] = 1;
+		else if (sync_field_1[position] == '1')
+			sync_field_1[position] = 0;
+
+		for (int l = 0; l<strlen(b); l++)
+		{
+			if (position == b[l])
+				printf("");
+			else
+				continue;
+		}
+	}
+
+	return 0;
 }
