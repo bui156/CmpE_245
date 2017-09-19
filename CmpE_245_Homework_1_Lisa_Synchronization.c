@@ -16,6 +16,8 @@ Must be consecutive 0x50 0x51 in order to pass, even if 0xa0 to 0xaf pass. */
 #include <stdio.h> 
 //#include <string.h>
 #include <stdlib.h>
+#include <time.h>
+#include <string.h>
 
 FILE *stream, *stream2;
 
@@ -30,15 +32,17 @@ const char sync_kernel[] = "01010000"; //0x50
 
 void write_to_text_file();
 char *copy_text_file();
-int corrupt(char sync_field_1 []);
+int corrupt(char sync_field[]);
+
 
 int main(void) {
 	printf("Hello World!\n");
 	char *sync_buffer_input;
-	char sync_buffer[1024];
+	char sync_buffer[2048];
 
 	char sync_field_1[] =	"00000000" //FAKE
 							"00010001" //FAKE
+							"01011111" //FAKE
 							"01010000" //0x50
 							"01010001" //0x51
 							"01010010" //0x52
@@ -109,15 +113,27 @@ int main(void) {
 	char hello_world_string [97];
 	char binary_buffer[8];
 
-	strcpy(hello_world_string, hello_world);
+	//strcpy(hello_world_string, hello_world);
 
 	write_to_text_file();
 	sync_buffer_input = copy_text_file();
-	printf("SYNC BUFFER: %s\n", sync_buffer_input);
-	printf("adsfasfd: %c\n", sync_buffer_input[1]);
+	//printf("SYNC BUFFER INPUT: %s\n", sync_buffer_input);
+	//printf("adsfasfd: %c\n", sync_buffer_input[1]);
 
-	for (int i = 0; i < 1024; i++)
-		sync_buffer[i] = sync_buffer_input[i];
+
+	
+	for (int i = 0; i < 376; i++) {
+		//sync_buffer[i] = sync_buffer_input[i];
+		//printf("Sync_buffer: %c", sync_buffer[i]);
+		printf("Sync_field_1: %c \n", sync_field_1[i]);
+	}
+	printf("hello");
+
+
+	//for (int i = 0; i < 1000; i++)
+	//	printf("%c", sync_buffer[i]);
+	//printf("Sync Buffer: %s\n", sync_buffer);
+	//printf("asdf: %c", sync_buffer[1023]);
 
 	corrupt(sync_field_1);
 
@@ -150,6 +166,7 @@ int main(void) {
 	
 	//Find start of sync field
 	//Save payload start position
+	
 	for (sync_field_iterator_find = 0; sync_field_iterator_find < sizeof(sync_field_1); sync_field_iterator_find++) {
 		//Confidence Level 0
 		for (int sync_kernel_iterator = 0; sync_kernel_iterator < sizeof(sync_kernel_0); sync_kernel_iterator++) {
@@ -959,8 +976,9 @@ int main(void) {
 		}
 	}
 	
+
 	/*
-	printf("asdfsadfasfd %c\n", sync_buffer[1]);
+	//printf("asdfsadfasfd %c\n", sync_buffer[1]);
 	//Find start of sync field
 	//Save payload start position
 	for (sync_field_iterator_find = 0; sync_field_iterator_find < sizeof(sync_buffer); sync_field_iterator_find++) {
@@ -1772,11 +1790,16 @@ int main(void) {
 		}
 	}
 	*/
+	
 
 	//Print the payload
+	int line_count = 0;
 	if (confidence_level_count == confidence_level) {
-		for (int i = payload_start; i < (sizeof(sync_field_1)); i++)
+		for (int i = payload_start; i < (sizeof(sync_field_1)); i++) {
 			printf("This is the payload: %c\n", sync_field_1[i]);
+			printf("This is the line number: %d\n", line_count);
+			line_count++;
+		}
 	}
 	
 	
@@ -1850,6 +1873,13 @@ char *copy_text_file() {
 		printf("The file 'test.txt' was not opened. \n");
 
 	fgets(buff, 1024, stream);
+	/*
+	int i = 0;
+	while (stream != NULL) {
+		buff[i] = fgetc(stream);
+		i++;
+	}
+	*/
 	//fgets(buff, 1024, stream);
 	//printf("String read: %s\n", buff);
 
@@ -1865,36 +1895,51 @@ char *copy_text_file() {
 }
 
 /*takes input from user, percentage of corruption, */
-int corrupt(char sync_field_1[])
+int corrupt(char sync_field[])
 {
-	int corrupt_no, c;
-	int a, position;
-	int b[256] = { 0 };
+	int count = 0;
 	int len;
-	printf("Enter the percentage of corrupted bits\n");
+	int corrupt_no = '0';
+	int c; 
+	int a, position;
+	char b[353] = { 0 };
+
+	printf("Enter the percentage of corrupted bits: \n");
 	scanf_s("%d", &corrupt_no, 1);
 	a = (corrupt_no * 256) / 100;
-	if (a % 2 != 0)
-		a += 1;
 
-	for (int i = 0; i <= a; i++)
+
+	for (int i = 0; i<a; i++)
 	{
 		position = (rand() % 256) + 8;
 		b[i] = position;
+		printf("Bit Position no. which is changed: %d ", position);
+		printf("\n");
+		count++;
 
-		if (sync_field_1[position] == '0')
-			sync_field_1[position] = 1;
-		else if (sync_field_1[position] == '1')
-			sync_field_1[position] = 0;
-
-		for (int l = 0; l<strlen(b); l++)
+		for (int l = 0; l < strlen(b); l++)
 		{
 			if (position == b[l])
-				printf("");
+				break;
 			else
-				continue;
+			{
+				if (sync_field[position] == '0')
+					sync_field[position] = '1';
+				else if (sync_field[position] == '1')
+					sync_field[position] = '0';
+			}
+
 		}
+
+
 	}
+	printf("\n");
+	printf("No. of bits changed: %d ", count);
+	printf("\n\n");
+
+
+	for (int z = 0; z < strlen(sync_field); z++)
+		printf("%c", sync_field[z]);
 
 	return 0;
 }
